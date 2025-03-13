@@ -1,0 +1,179 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structure for a Flight node
+typedef struct Flight {
+    int flightNumber;
+    char destination[50];
+    char departure[50];
+    int seatsAvailable;
+    struct Flight* next;
+} Flight;
+
+// Structure for a Booking node
+typedef struct Booking {
+    int flightNumber;
+    char passengerName[50];
+    int seatNumber;
+    struct Booking* next;
+} Booking;
+
+// Head pointers for the linked lists
+Flight* flightHead = NULL;
+Booking* bookingHead = NULL;
+
+// Function to create a new flight node
+Flight* createFlight(int flightNumber, char* destination, char* departure, int seatsAvailable) {
+    Flight* newFlight = (Flight*)malloc(sizeof(Flight));
+    newFlight->flightNumber = flightNumber;
+    strcpy(newFlight->destination, destination);
+    strcpy(newFlight->departure, departure);
+    newFlight->seatsAvailable = seatsAvailable;
+    newFlight->next = NULL;
+    return newFlight;
+}
+
+// Function to add a flight to the linked list
+void addFlight(int flightNumber, char* destination, char* departure, int seatsAvailable) {
+    Flight* newFlight = createFlight(flightNumber, destination, departure, seatsAvailable);
+    newFlight->next = flightHead;
+    flightHead = newFlight;
+}
+
+// Function to search for a flight by flight number
+Flight* searchFlight(int flightNumber) {
+    Flight* current = flightHead;
+    while (current != NULL) {
+        if (current->flightNumber == flightNumber) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+// Function to create a new booking node
+Booking* createBooking(int flightNumber, char* passengerName, int seatNumber) {
+    Booking* newBooking = (Booking*)malloc(sizeof(Booking));
+    newBooking->flightNumber = flightNumber;
+    strcpy(newBooking->passengerName, passengerName);
+    newBooking->seatNumber = seatNumber;
+    newBooking->next = NULL;
+    return newBooking;
+}
+
+// Function to add a booking to the linked list
+void addBooking(int flightNumber, char* passengerName, int seatNumber) {
+    Booking* newBooking = createBooking(flightNumber, passengerName, seatNumber);
+    newBooking->next = bookingHead;
+    bookingHead = newBooking;
+}
+
+// Function to book a seat
+void bookSeat(int flightNumber, char* passengerName) {
+    Flight* flight = searchFlight(flightNumber);
+    if (flight == NULL) {
+        printf("Flight not found.\n");
+        return;
+    }
+    if (flight->seatsAvailable == 0) {
+        printf("No seats available on this flight.\n");
+        return;
+    }
+
+    flight->seatsAvailable--;
+    int seatNumber = 100 - flight->seatsAvailable; // Assume a fixed max seats of 50
+    addBooking(flightNumber, passengerName, seatNumber);
+
+    printf("Booking successful! Seat number: %d\n", seatNumber);
+}
+
+// Function to display all flights
+void displayFlights() {
+    Flight* current = flightHead;
+    printf("Flight Number\tDestination\tDeparture\tSeats Available\n");
+    while (current != NULL) {
+        printf("%d\t\t %s\t\t%s \t\t%d\n", current->flightNumber, current->destination, current->departure, current->seatsAvailable);
+        current = current->next;
+    }
+}
+
+// Function to display bookings for a specific flight
+void displayBookings(int flightNumber) {
+    Booking* current = bookingHead;
+    printf("Passenger Name\tSeat Number\n");
+    while (current != NULL) {
+        if (current->flightNumber == flightNumber) {
+            printf("%s\t\t%d\n", current->passengerName, current->seatNumber);
+        }
+        current = current->next;
+    }
+}
+// Function to update flight details
+void updateFlight(int flightNumber, char* destination, char* departure, int seatsAvailable) {
+    Flight* flight = searchFlight(flightNumber);
+    if (flight == NULL) {
+        printf("Flight not found.\n");
+        return;
+    }
+    strcpy(flight->destination, destination);
+    strcpy(flight->departure, departure);
+    flight->seatsAvailable = seatsAvailable;
+    printf("Flight details updated successfully.\n");
+}
+
+// Function to delete a flight
+void deleteFlight(int flightNumber) {
+    Flight* current = flightHead;
+    Flight* previous = NULL;
+    while (current != NULL) {
+        if (current->flightNumber == flightNumber) {
+            if (previous == NULL) {
+                flightHead = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            free(current);
+            printf("Flight deleted successfully.\n");
+            return;
+        }
+        previous = current;
+        current = current->next;
+    }
+    printf("Flight not found.\n");
+}
+
+int main() {
+    int n;
+    scanf("%d\n", &n);
+    int flno, flseat;
+    char fldest[50];
+    char fltime[30];
+    for (int i = 1; i <= n; i++) {
+        scanf("%d\n", &flno);
+        scanf("%s\n", fldest);
+        scanf("%s\n", fltime);
+        scanf("%d\n", &flseat);
+        addFlight(flno, fldest, fltime, flseat);
+    }
+
+    displayFlights();
+    bookSeat(101, "Raghava sai");
+    bookSeat(103, "Naga vardhan");
+    bookSeat(103, "Arun kumar");
+    bookSeat(103, "Baba fakruddin");
+
+    displayFlights();
+    // Example of update and delete
+    updateFlight(101, "HYDERABAD", "3:30", 40);
+    displayFlights();
+
+    deleteFlight(104); // Delete a non-existent flight
+    deleteFlight(101); // Delete an existing flight
+    displayFlights();
+
+    // Example of displaying bookings
+    displayBookings(103);
+     return 0;
+}
